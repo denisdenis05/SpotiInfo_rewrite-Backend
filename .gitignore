@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Added by me ###
+./src/main/java/com.spotiinfo.java/ServerApplication.java
