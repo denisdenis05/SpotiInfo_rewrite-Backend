@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Added by me ###
-./src/main/java/com.spotiinfo.java/ServerApplication.java
+./src/main/java/com.spotiinfo.java/SpotifyApiConfig.java

@@ -67,8 +67,55 @@ public class ApiController {
         return ResponseEntity.status(HttpStatus.OK).body(authorizationUri);
     }
 
+    @GetMapping("/getNonSensitiveInformation")
+    public ResponseEntity<NonSensitiveInformation> getTokenAndScopes(HttpSession session) {
+        SpotifyApiConfig applicationData = new SpotifyApiConfig();
+        String clientId = applicationData.CLIENT_ID;
+        String scopes = applicationData.SCOPES;
+        String redirectUri = applicationData.SCOPES;
+
+        NonSensitiveInformation nonSensitiveInformation = new NonSensitiveInformation(clientId, scopes, redirectUri);
+        return ResponseEntity.status(HttpStatus.OK).body(nonSensitiveInformation);
+    }
 
 }
+
+
+class NonSensitiveInformation{
+    private String clientId;
+    private String scopes;
+    private String redirectUri;
+    public NonSensitiveInformation(String clientId, String scopes, String redirectUri){
+        this.clientId = clientId;
+        this.scopes = scopes;
+        this.redirectUri = redirectUri;
+    }
+
+    public String getScopes() {
+        return this.scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
+    }
+
+    public String getRedirectUri() {
+        return this.redirectUri;
+    }
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+
+    public String getClientId() {
+        return this.clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+}
+
 class LoginInformation{
     private Boolean isLoggedIn;
     private String username;
@@ -79,7 +126,7 @@ class LoginInformation{
     }
 
     public Boolean getIsLoggedIn() {
-        return isLoggedIn;
+        return this.isLoggedIn;
     }
 
     public void setIsLoggedIn(Boolean isLoggedIn) {
@@ -87,7 +134,7 @@ class LoginInformation{
     }
 
     public String getUsername() {
-        return username;
+        return this.username;
     }
 
     public void setUsername(String username) {
