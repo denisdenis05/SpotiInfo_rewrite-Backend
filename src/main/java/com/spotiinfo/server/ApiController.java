@@ -71,8 +71,8 @@ public class ApiController {
     public ResponseEntity<NonSensitiveInformation> getTokenAndScopes(HttpSession session) {
         SpotifyApiConfig applicationData = new SpotifyApiConfig();
         String clientId = applicationData.CLIENT_ID;
-        String scopes = applicationData.SCOPES;
-        String redirectUri = applicationData.SCOPES;
+        String[] scopes = applicationData.SCOPES;
+        String redirectUri = applicationData.REDIRECT_URI;
 
         NonSensitiveInformation nonSensitiveInformation = new NonSensitiveInformation(clientId, scopes, redirectUri);
         return ResponseEntity.status(HttpStatus.OK).body(nonSensitiveInformation);
@@ -83,19 +83,19 @@ public class ApiController {
 
 class NonSensitiveInformation{
     private String clientId;
-    private String scopes;
+    private String[] scopes;
     private String redirectUri;
-    public NonSensitiveInformation(String clientId, String scopes, String redirectUri){
+    public NonSensitiveInformation(String clientId, String[] scopes, String redirectUri){
         this.clientId = clientId;
         this.scopes = scopes;
         this.redirectUri = redirectUri;
     }
 
-    public String getScopes() {
+    public String[] getScopes() {
         return this.scopes;
     }
 
-    public void setScopes(String scopes) {
+    public void setScopes(String[] scopes) {
         this.scopes = scopes;
     }
 
