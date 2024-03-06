@@ -5,31 +5,55 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 
 import java.net.URI;
-import java.util.Arrays;
+
+import static com.spotiinfo.server.SpotifyRequests.getSpotifyUsername;
+import static com.spotiinfo.server.SpotifyRequests.getAndSetSpotifyToken;
 
 @RestController
 public class ApiController {
     @GetMapping("/test")
     public ResponseEntity<String> testEndpoint(HttpSession session) {
+
         System.out.println("GET request received at /test");
         return ResponseEntity.status(HttpStatus.OK).body("yeah it works"+session.getAttribute("USERNAME"));
     }
 
-    @PostMapping("/test2")
-    public ResponseEntity<String> test2Endpoint(HttpSession session) {
-        session.setAttribute("USERNAME", "denis");
-        System.out.println("GET request received at /test2");
-        return ResponseEntity.status(HttpStatus.OK).body("it's ok, "+session.getAttribute("USERNAME"));
+    @PostMapping("/setAuthorizationKey")
+    public ResponseEntity<LoginInformation> setAuthorizationKey(@RequestBody LoginInformation requestBody, HttpSession session) {
+        String identificator = requestBody.getIdentificator();
+        System.out.println(identificator);
+
+        getAndSetSpotifyToken(identificator, session);
+
+        if (session.getAttribute("accessToken") != null) {
+            String authorizationKey = (String)session.getAttribute("accessToken");
+
+            String username = getSpotifyUsername(authorizationKey);
+            if (username != null) {
+                session.setAttribute("authenticated", true);
+                session.setAttribute("username", username);
+                System.out.println("POST request received at /setAuthorizationKey");
+                System.out.println(session.getAttribute("accessToken"));
+            }
+            if (session.getAttribute("authenticated") == null) {
+                session.setAttribute("authenticated", false);
+                session.setAttribute("username", "placeholder");
+                session.setAttribute("accessToken", "placeholder");
+            }
+        }
+
+        LoginInformation loginInformation = new LoginInformation((Boolean) session.getAttribute("authenticated"), (String) session.getAttribute("username"));
+        return ResponseEntity.status(HttpStatus.OK).body(loginInformation);
     }
 
     @GetMapping("/checkIfLoggedIn")
     public ResponseEntity<LoginInformation> checkIfLoggedIn(HttpSession session) {
-
         Boolean isLoggedIn = Boolean.valueOf((String)session.getAttribute("isLoggedIn"));
         LoginInformation loginInformation;
         if(isLoggedIn!=null && isLoggedIn){
@@ -37,21 +61,14 @@ public class ApiController {
             loginInformation = new LoginInformation(isLoggedIn, username);
         }
         else{
-            loginInformation = new LoginInformation(false, "placeholder");
+            loginInformation = new LoginInformation((Boolean) session.getAttribute("authenticated"), "placeholder");
         }
         return ResponseEntity.status(HttpStatus.OK).body(loginInformation);
     }
 
-    private void createSpotifyAuthorizationURI()
+    private URI createSpotifyAuthorizationURI()
     {
-
-    }
-
-    @GetMapping("/getAuthorizationURI")
-    public ResponseEntity<URI> getAuthorizationURI(HttpSession session) {
-
         SpotifyApiConfig applicationData = new SpotifyApiConfig();
-
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(applicationData.CLIENT_ID)
                 .setRedirectUri(URI.create(applicationData.REDIRECT_URI))
@@ -62,8 +79,13 @@ public class ApiController {
                 .show_dialog(true)
                 .build();
 
-        URI authorizationUri = authorizationCodeUriRequest.execute();
+        return authorizationCodeUriRequest.execute();
+    }
 
+    @GetMapping("/getAuthorizationURI")
+    public ResponseEntity<URI> getAuthorizationURI(HttpSession session) {
+
+        URI authorizationUri = createSpotifyAuthorizationURI();
         return ResponseEntity.status(HttpStatus.OK).body(authorizationUri);
     }
 
@@ -118,11 +140,11 @@ class NonSensitiveInformation{
 
 class LoginInformation{
     private Boolean isLoggedIn;
-    private String username;
+    private String identificator;
 
     public LoginInformation(boolean isLoggedIn, String username){
         this.isLoggedIn = isLoggedIn;
-        this.username = username;
+        this.identificator = username;
     }
 
     public Boolean getIsLoggedIn() {
@@ -133,12 +155,12 @@ class LoginInformation{
         this.isLoggedIn = isLoggedIn;
     }
 
-    public String getUsername() {
-        return this.username;
+    public String getIdentificator() {
+        return this.identificator;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setIdentificator(String identificator) {
+        this.identificator = identificator;
     }
 
 }
